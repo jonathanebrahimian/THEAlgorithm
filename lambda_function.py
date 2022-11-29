@@ -6,23 +6,27 @@ import os
 import requests
 from collections import defaultdict
 import json
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def lambda_handler(event, context):
    address = '0x0eb638648207d00b9025684d13b1cb53806debe4'
+   contract_name,source_split = get_contract_source(address)
     # TODO implement
    return {
       'statusCode': 200,
-      'body': parse(get_contract_source(address))
+      'body': parse(contract_name,source_split)
    }
 
 
 
 def get_contract_source(address):
    token = 'ape'
-   response = requests.get(f"""https://api.etherscan.io/api?module=contract&action=getsourcecode&address={address}&apikey={os.environ.get('API_KEY')}""")
+   api_key = os.environ.get('API_KEY')
+   response = requests.get(f"""https://api.etherscan.io/api?module=contract&action=getsourcecode&address={address}&apikey={api_key}""")
    data = response.json()
    contract_name = data['result'][0]['ContractName']
-   print(contract_name)
    source = data['result'][0]['SourceCode']
    # with open(f"{token}.txt", "w") as text_file:
    #    text_file.write(source)
@@ -138,3 +142,5 @@ def parse(contract_name,source_split):
 
    }
    return data
+
+# lambda_handler(None,None)
