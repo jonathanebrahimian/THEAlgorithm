@@ -1,6 +1,6 @@
 
 
-import requests
+from botocore.vendored import requests
 import json
 import os
 import requests
