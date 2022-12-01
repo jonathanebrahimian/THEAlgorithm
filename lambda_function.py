@@ -8,6 +8,8 @@ from collections import defaultdict
 import json
 
 def lambda_handler(event, context):
+   print(event)
+   print(event.keys())
    address = '0x0eb638648207d00b9025684d13b1cb53806debe4'
    contract_name,source_split = get_contract_source(address)
     # TODO implement
