@@ -16,8 +16,6 @@ def lambda_handler(event, context):
       'body': parse(contract_name,source_split)
    }
 
-
-
 def get_contract_source(address):
    token = 'ape'
    api_key = os.environ.get('API_KEY')
@@ -136,7 +134,7 @@ def parse(contract_name,source_split):
                print(func)
    
    data = {
-      
+
    }
    return data
 
