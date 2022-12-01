@@ -6,16 +6,6 @@ import os
 import requests
 from collections import defaultdict
 import json
-from dotenv import load_dotenv
-
-load_dotenv()
-
-import subprocess
-import sys
-
-def install(package):
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "requests"])
-install()
 
 def lambda_handler(event, context):
    address = '0x0eb638648207d00b9025684d13b1cb53806debe4'
@@ -146,7 +136,7 @@ def parse(contract_name,source_split):
                print(func)
    
    data = {
-
+      
    }
    return data
 
