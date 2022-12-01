@@ -137,7 +137,7 @@ def parse(contract_name,source_split):
    data['contracts'] = defaultdict(list)
    for key in modifiers:
       modifiers_json = []
-      for mod in functions[key]:
+      for mod in modifiers[key]:
          modifiers_json.append({
             'name':mod,
             'functions':functions[mod]
