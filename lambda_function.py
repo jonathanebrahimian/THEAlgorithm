@@ -140,7 +140,7 @@ def parse(contract_name,source_split):
       for mod in modifiers[key]:
          modifiers_json.append({
             'name':mod,
-            'functions':functions[mod]
+            'functions':list(functions[mod])
          })
 
       data['contracts'][key].append(
