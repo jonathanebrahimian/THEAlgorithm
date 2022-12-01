@@ -8,9 +8,8 @@ from collections import defaultdict
 import json
 
 def lambda_handler(event, context):
-   print(event)
-   print(event.keys())
-   address = '0x0eb638648207d00b9025684d13b1cb53806debe4'
+   address = event['queryStringParameters']['token']
+   print("This is the address")
    contract_name,source_split = get_contract_source(address)
     # TODO implement
    return {
@@ -117,27 +116,40 @@ def parse(contract_name,source_split):
 
 
 
-   print("This contract extends the following contracts",extendables)
-   print('----------------------')
-   print("Modifiers per contract")
+   # print("This contract extends the following contracts",extendables)
+   # print('----------------------')
+   # print("Modifiers per contract")
+   # for key in modifiers:
+   #    print("---Contract:",key,'---')
+   #    for mod in modifiers[key]:
+   #       print(mod)
+
+
+   # # modifiers
+   # print('----------------------')
+
+   # print("The modifiers are used in these functions")
+   # for key in functions:
+   #    print("--- Modifier",key,'----')
+   #    for func in functions[key]:
+   #             print(func)
+   data = {}
+   data['contracts'] = defaultdict(list)
    for key in modifiers:
-      print("---Contract:",key,'---')
-      for mod in modifiers[key]:
-         print(mod)
+      modifiers_json = []
+      for mod in functions[key]:
+         modifiers_json.append({
+            'name':mod,
+            'functions':functions[mod]
+         })
 
+      data['contracts'][key].append(
+         {
+            'name':key,
+            'modifiers':modifiers_json
+         }
+      )
 
-   # modifiers
-   print('----------------------')
-
-   print("The modifiers are used in these functions")
-   for key in functions:
-      print("--- Modifier",key,'----')
-      for func in functions[key]:
-               print(func)
-   
-   data = {
-
-   }
    return data
 
 # lambda_handler(None,None)
