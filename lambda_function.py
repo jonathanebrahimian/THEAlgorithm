@@ -10,6 +10,13 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+import subprocess
+import sys
+
+def install(package):
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "requests"])
+install()
+
 def lambda_handler(event, context):
    address = '0x0eb638648207d00b9025684d13b1cb53806debe4'
    contract_name,source_split = get_contract_source(address)
