@@ -39,29 +39,17 @@ def parse(contract_name,source_split):
 
    # find extended contracts
    extendables = []
-   for i,line in enumerate(source_split):
-      # if 'contract ' + contract_name in line[:len(contract_def)+1]:
-      #     # print(i+1,line)
-      #     is_idx = line.find('is') + 2
-      #     line = line.replace('{','')
-      #     extendables = line[is_idx:].split(',')
-      #     extendables = [extendable.strip() for extendable in extendables]
+   for i, line in enumerate(source_split):
       line_split = line.split(' ')
-      for word_i,x in enumerate(line_split):
+      for word_i, x in enumerate(line_split):
          if word_i == 0 and x.strip() == 'contract' and word_i + 1 < len(line_split):
                extendables.append(line_split[word_i + 1].strip())
-      # if line.strip()[:8] == 'contract':
-      #     extendables
-         
-   print(extendables)
 
 
    modifiers = defaultdict(set)
-   # find modifiers
    stack = 0
    curr_contract = None
-   # modifiers = []
-   for line_n,line in enumerate(source_split):
+   for line_n, line in enumerate(source_split):
       stripped = line.strip()
       for extendable in extendables + [contract_name]:
          if 'contract ' + extendable in line:
@@ -69,9 +57,9 @@ def parse(contract_name,source_split):
                curr_contract = extendable
 
       prev = ''
-      for i,char in enumerate(stripped):
+      for i, char in enumerate(stripped):
          if i == 0 and char == '*':
-               continue
+               break
          if char == '/' and prev == '/':
                break
          if char == '{':
@@ -79,23 +67,23 @@ def parse(contract_name,source_split):
          if char == '}':
                stack -= 1
          prev = char
-      
-      # stack += line.count('{')
-      # stack -= line.count('}')
+
       if stack == 0:
          curr_contract = None
-      
+
       if 'modifier' == stripped[:8]:
          assert curr_contract != None
          modifiers[curr_contract].add(stripped[9:stripped.find('(')])
 
-   # print(modifiers)
-
+   stack = -1
+   lines = []
    functions = defaultdict(set)
-   visibilities =['private', 'internal', 'external', 'public']
-   for line_n,line in enumerate(source_split):
+   src = {}
+   visibilities = ['private', 'internal', 'external', 'public']
+   for line_n, line in enumerate(source_split):
       stripped = line.strip()
       if 'function' == stripped[:8]:
+         stack = 0
          func_name = stripped[9:stripped.find('(')]
          idx = -1
          vis_found = ''
@@ -103,54 +91,61 @@ def parse(contract_name,source_split):
                if stripped.find(visibility) > idx:
                   vis_found = visibility
                   idx = stripped.find(visibility)
-               
-         
+
          if idx == -1:
                continue
-         
+
          mods = stripped[idx+len(vis_found):]
          mods = mods[:mods.find('(')].split(' ')
          for mod in mods:
-               if mod in ['','view','returns','pure','virtual']:
+               if mod in ['', 'view', 'returns', 'pure', 'virtual']:
                   continue
                functions[mod].add(func_name)
 
+      prev = ''
+      for i, char in enumerate(stripped):
+         if i == 0 and char == '*':
+               break
+         if char == '/' and prev == '/':
+               break
+         if char == '{':
+               stack += 1
+         if char == '}':
+               stack -= 1
+         prev = char
 
+      if stack >= 0:
+         lines.append(line)
+      if stack == 0:
+         stack = -1
+         src[func_name] = lines
+         lines = []
+      
+         
 
-   # print("This contract extends the following contracts",extendables)
-   # print('----------------------')
-   # print("Modifiers per contract")
-   # for key in modifiers:
-   #    print("---Contract:",key,'---')
-   #    for mod in modifiers[key]:
-   #       print(mod)
+   for key in functions:
+      functions[key] = list(functions[key])
+      for i,func in enumerate(functions[key]):
+         functions[key][i] = {
+               'name':func,
+               'source_code':src[func]
+         }
 
-
-   # # modifiers
-   # print('----------------------')
-
-   # print("The modifiers are used in these functions")
-   # for key in functions:
-   #    print("--- Modifier",key,'----')
-   #    for func in functions[key]:
-   #             print(func)
    data = {}
    data['contracts'] = []
    for key in modifiers:
       modifiers_json = []
       for mod in modifiers[key]:
          modifiers_json.append({
-            'name':mod,
-            'functions':list(functions[mod])
+         'name':mod,
+         'functions':list(functions[mod])
          })
-
       data['contracts'].append(
          {
-            'name':key,
-            'modifiers':modifiers_json
+         'name':key,
+         'modifiers':modifiers_json
          }
       )
 
    return data
-
 # lambda_handler(None,None)
