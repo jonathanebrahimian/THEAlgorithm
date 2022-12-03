@@ -10,16 +10,15 @@ import json
 
 def lambda_handler(event, context):
    address = event['queryStringParameters']['token']
-   print("This is the address")
+   print("This is the address",address)
    contract_name,source_split = get_contract_source(address)
-    # TODO implement
+   # TODO implement
    return {
       'statusCode': 200,
       'body': parse(contract_name,source_split)
    }
 
 def get_contract_source(address):
-   token = 'ape'
    api_key = os.environ.get('API_KEY')
    response = requests.get(f"""https://api.etherscan.io/api?module=contract&action=getsourcecode&address={address}&apikey={api_key}""")
    data = response.json()
@@ -28,10 +27,9 @@ def get_contract_source(address):
    # with open(f"{token}.txt", "w") as text_file:
    #    text_file.write(source)
    source_split = source.split('\n')
+   print(len(source_split))
+
    return contract_name,source_split
-   # len(source_split)
-
-
 
 
 def parse(contract_name,source_split):
@@ -40,15 +38,26 @@ def parse(contract_name,source_split):
    # find extended contracts
    extendables = []
    for i, line in enumerate(source_split):
+      # if 'contract ' + contract_name in line[:len(contract_def)+1]:
+      #     # print(i+1,line)
+      #     is_idx = line.find('is') + 2
+      #     line = line.replace('{','')
+      #     extendables = line[is_idx:].split(',')
+      #     extendables = [extendable.strip() for extendable in extendables]
       line_split = line.split(' ')
       for word_i, x in enumerate(line_split):
          if word_i == 0 and x.strip() == 'contract' and word_i + 1 < len(line_split):
                extendables.append(line_split[word_i + 1].strip())
+      # if line.strip()[:8] == 'contract':
+      #     extendables
+
 
 
    modifiers = defaultdict(set)
+   # find modifiers
    stack = 0
    curr_contract = None
+   # modifiers = []
    for line_n, line in enumerate(source_split):
       stripped = line.strip()
       for extendable in extendables + [contract_name]:
@@ -68,6 +77,8 @@ def parse(contract_name,source_split):
                stack -= 1
          prev = char
 
+      # stack += line.count('{')
+      # stack -= line.count('}')
       if stack == 0:
          curr_contract = None
 
@@ -75,13 +86,16 @@ def parse(contract_name,source_split):
          assert curr_contract != None
          modifiers[curr_contract].add(stripped[9:stripped.find('(')])
 
-   stack = -1
+   # print(modifiers)
+   stack = -9999
    lines = []
    functions = defaultdict(set)
    src = {}
    visibilities = ['private', 'internal', 'external', 'public']
    for line_n, line in enumerate(source_split):
+      # print(line_n,line,stack)
       stripped = line.strip()
+
       if 'function' == stripped[:8]:
          stack = 0
          func_name = stripped[9:stripped.find('(')]
@@ -117,7 +131,7 @@ def parse(contract_name,source_split):
       if stack >= 0:
          lines.append(line)
       if stack == 0:
-         stack = -1
+         stack = -9999
          src[func_name] = lines
          lines = []
       
@@ -130,6 +144,26 @@ def parse(contract_name,source_split):
                'name':func,
                'source_code':src[func]
          }
+
+
+
+   # print("This contract extends the following contracts",extendables)
+   # print('----------------------')
+   # print("Modifiers per contract")
+   # for key in modifiers:
+   #     print("---Contract:",key,'---')
+   #     for mod in modifiers[key]:
+   #         print(mod)
+
+
+   # # modifiers
+   # print('----------------------')
+
+   # print("The modifiers are used in these functions")
+   # for key in functions:
+   #     print("--- Modifier",key,'----')
+   #     for func in functions[key]:
+   #             print(func)
 
    data = {}
    data['contracts'] = []
@@ -147,5 +181,5 @@ def parse(contract_name,source_split):
          }
       )
 
+
    return data
-# lambda_handler(None,None)
