@@ -174,10 +174,13 @@ def parse(contract_name,source_split):
          'name':mod,
          'functions':list(functions[mod])
          })
+      main = contract_name == key
+      
       data['contracts'].append(
          {
-         'name':key,
-         'modifiers':modifiers_json
+            'name':key,
+            'modifiers':modifiers_json,
+            'main':main
          }
       )
 
