@@ -98,14 +98,12 @@ def parse(contract_name,source_split):
          modifier_name = None
          lines = []
 
-   # print(modifiers)
    stack = -9999
    lines = []
    functions = defaultdict(set)
    src = {}
    visibilities = ['private', 'internal', 'external', 'public']
    for line_n, line in enumerate(source_split):
-      # print(line_n,line,stack)
       stripped = line.strip()
 
       if 'function' == stripped[:8]:
