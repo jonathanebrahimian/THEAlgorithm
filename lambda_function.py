@@ -174,7 +174,6 @@ def parse(contract_name,source_split):
          }
       )
    
-   import pandas as pd
    dataframe_data = []
    for key in modifier_src:
       dataframe_data.append(
@@ -184,15 +183,4 @@ def parse(contract_name,source_split):
       }
       )
    
-   # for key in src:
-   #    if len(src[key]) == 1:
-   #       continue
-   #    dataframe_data.append({
-   #       'code':"".join(src[key]),
-   #       'function_name':key
-   #    })
-
-   df = pd.DataFrame(dataframe_data)
-
-   df.to_csv("functions2.csv", index=False)
    return data
