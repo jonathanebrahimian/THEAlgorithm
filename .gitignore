@@ -1,3 +1,6 @@
 *.txt
+*.csv
+__pycache__
 .env
 lambda_layers/
+*.pyc
