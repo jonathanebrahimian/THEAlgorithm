@@ -158,7 +158,6 @@ def parse(contract_name,source_split):
          }
 
    data = {}
-   data['contracts'] = []
    data['test'] = 'This is a new line, for testing'
    for key in modifiers:
       modifiers_json = []
