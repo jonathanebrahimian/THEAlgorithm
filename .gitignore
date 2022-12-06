@@ -4,3 +4,4 @@ __pycache__
 .env
 lambda_layers/
 *.pyc
+dev/
