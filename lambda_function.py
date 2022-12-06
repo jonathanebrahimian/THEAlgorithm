@@ -22,8 +22,17 @@ def get_contract_source(address):
    api_key = os.environ.get('API_KEY')
    response = requests.get(f"""https://api.etherscan.io/api?module=contract&action=getsourcecode&address={address}&apikey={api_key}""")
    data = response.json()
+   # print(data)
    contract_name = data['result'][0]['ContractName']
    source = data['result'][0]['SourceCode']
+   
+   try:
+      source = json.loads(source)
+      concat = [source[key]['content'] for key in source]
+      source = "\n".join(concat)
+   except Exception as e:
+      # raise e
+      pass
    # with open(f"{token}.txt", "w") as text_file:
    #    text_file.write(source)
    source_split = source.split('\n')
@@ -50,7 +59,7 @@ def parse(contract_name,source_split):
                extendables.append(line_split[word_i + 1].strip())
       # if line.strip()[:8] == 'contract':
       #     extendables
-
+   print(extendables)
 
 
    modifiers = defaultdict(set)
