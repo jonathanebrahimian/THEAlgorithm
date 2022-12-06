@@ -57,7 +57,10 @@ def parse(contract_name,source_split):
    # find modifiers
    stack = 0
    curr_contract = None
+   modifier_name = None
+   modifier_src = {}
    # modifiers = []
+   lines = []
    for line_n, line in enumerate(source_split):
       stripped = line.strip()
       for extendable in extendables + [contract_name]:
@@ -84,7 +87,16 @@ def parse(contract_name,source_split):
 
       if 'modifier' == stripped[:8]:
          assert curr_contract != None
-         modifiers[curr_contract].add(stripped[9:stripped.find('(')])
+         modifier_name = stripped[9:stripped.find('(')]
+         modifiers[curr_contract].add(modifier_name)
+      
+      if modifier_name is not None:
+         lines.append(line)
+      
+      if stack == 1 and modifier_name is not None:
+         modifier_src[modifier_name] = lines
+         modifier_name = None
+         lines = []
 
    # print(modifiers)
    stack = -9999
@@ -145,26 +157,6 @@ def parse(contract_name,source_split):
                'source_code':src[func]
          }
 
-
-
-   # print("This contract extends the following contracts",extendables)
-   # print('----------------------')
-   # print("Modifiers per contract")
-   # for key in modifiers:
-   #     print("---Contract:",key,'---')
-   #     for mod in modifiers[key]:
-   #         print(mod)
-
-
-   # # modifiers
-   # print('----------------------')
-
-   # print("The modifiers are used in these functions")
-   # for key in functions:
-   #     print("--- Modifier",key,'----')
-   #     for func in functions[key]:
-   #             print(func)
-
    data = {}
    data['contracts'] = []
    for key in modifiers:
@@ -183,6 +175,26 @@ def parse(contract_name,source_split):
             'main':main
          }
       )
+   
+   import pandas as pd
+   dataframe_data = []
+   for key in modifier_src:
+      dataframe_data.append(
+         {
+         'code':"".join(modifier_src[key]),
+         'function_name':key
+      }
+      )
+   
+   # for key in src:
+   #    if len(src[key]) == 1:
+   #       continue
+   #    dataframe_data.append({
+   #       'code':"".join(src[key]),
+   #       'function_name':key
+   #    })
 
+   df = pd.DataFrame(dataframe_data)
 
+   df.to_csv("functions2.csv", index=False)
    return data
