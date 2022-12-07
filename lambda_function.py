@@ -22,7 +22,7 @@ def get_contract_source(address):
    api_key = os.environ.get('API_KEY')
    response = requests.get(f"""https://api.etherscan.io/api?module=contract&action=getsourcecode&address={address}&apikey={api_key}""")
    data = response.json()
-   # print(data['result'][0])
+   # print(data)
    contract_name = data['result'][0]['ContractName']
    source = data['result'][0]['SourceCode']
    # print(source)
@@ -55,18 +55,11 @@ def parse(contract_name,source_split):
    # find extended contracts
    extendables = []
    for i, line in enumerate(source_split):
-      # if 'contract ' + contract_name in line[:len(contract_def)+1]:
-      #     # print(i+1,line)
-      #     is_idx = line.find('is') + 2
-      #     line = line.replace('{','')
-      #     extendables = line[is_idx:].split(',')
-      #     extendables = [extendable.strip() for extendable in extendables]
       line_split = line.split(' ')
-      for word_i, x in enumerate(line_split):
-         if word_i == 0 and x.strip() == 'contract' and word_i + 1 < len(line_split):
-               extendables.append(line_split[word_i + 1].strip())
-      # if line.strip()[:8] == 'contract':
-      #     extendables
+      if len(line_split) >= 2 and line_split[0] == 'contract':
+         extendables.append(line_split[1].strip())
+      elif len(line_split) >= 3 and line_split[0] == 'abstract' and line_split[1] == 'contract':
+         extendables.append(line_split[2].strip())
    # print(extendables)
 
 
