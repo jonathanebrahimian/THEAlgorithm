@@ -12,11 +12,12 @@ tokens = {
     'ape': '0x4d224452801aced8b2f0aebe155379bb5d594381',
     'chain':'0xA2cd3D43c775978A96BdBf12d733D5A1ED94fb18',
     'owned':'0x75231F58b43240C9718Dd58B4967c5114342a86c',
+    'dec_usd':'0x0C10bF8FcB7Bf5412187A595ab97a3609160b5c6'
 }
 # lambda_handler(None,None)
 event = {
    'queryStringParameters':{
-      'token':tokens['owned']
+      'token':tokens['nil']
    }
 }
 print(lambda_handler(event, None))
