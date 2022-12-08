@@ -16,9 +16,9 @@ functions: finds all function declarations that may have modifiers
   captures the function name
 '''
 REGEX = dict({
-  'contracts': '(?m)^[ \t]*(abstract )?contract\s+([_A-z0-9]+)\s*(is [_A-z0-9, ]*)?\s*{',
-  'functions': '(?m)^[ \t]*function ([_A-z0-9]+)\([^\)]*\)\s*([^{;]+){',
-  'modifiers': '(?m)^[ \t]*modifier ([_A-z0-9]+)\([_A-z0-9]*\) {'
+  'contracts': '(?m)^[ \t]*(abstract )?contract\s+([_A-Za-z0-9]+)\s*(is [_A-Za-z0-9, ]*)?\s*{',
+  'functions': '(?m)^[ \t]*function ([_A-Za-z0-9]+)\([^\)]*\)\s*([^{;]+)\s*{',
+  'modifiers': '(?m)^[ \t]*modifier\s+([_A-Za-z0-9]+)\s*\([_A-Za-z0-9, ]*\)\s*{'
 })
 
 def lambda_handler(event, context):
@@ -77,9 +77,10 @@ def parse(contract_name,source):
 
   modifiers = re.finditer(REGEX['modifiers'], source)
   # Custom modifier "Constructor" for consistency
-  new_modifier = lambda curr_modifier: {
+  new_modifier = lambda curr_modifier, source_code: {
     'functions': [],
-    'name': curr_modifier.group(1)
+    'name': curr_modifier.group(1),
+    'source_code': source_code
   }
   # print([x for x in modifiers])
   # print([x.group(1) for x in modifiers])
@@ -151,7 +152,8 @@ def parse(contract_name,source):
 
       # CASE 2
       # Save modifier information
-      data['contracts'][-1]['modifiers'].append(new_modifier(curr_modifier))
+      source_code = extract_source_code(source, curr_modifier.start())
+      data['contracts'][-1]['modifiers'].append(new_modifier(curr_modifier, source_code))
       modifiers_list.append({
         'name': curr_modifier.group(1),
         'contract': len(data['contracts']) - 1,
@@ -189,7 +191,8 @@ def parse(contract_name,source):
   try:
     while has_modifiers:
       # Save modifier information
-      data['contracts'][-1]['modifiers'].append(new_modifier(curr_modifier))
+      source_code = extract_source_code(source, curr_modifier.start())
+      data['contracts'][-1]['modifiers'].append(new_modifier(curr_modifier, source_code))
       modifiers_list.append({
         'name': curr_modifier.group(1),
         'contract': len(data['contracts']) - 1,
@@ -221,6 +224,7 @@ def parse(contract_name,source):
   except StopIteration:
     pass 
 
+  print(data)
   return data
 
 def extract_source_code(source, start):
