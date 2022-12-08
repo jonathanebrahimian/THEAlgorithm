@@ -16,7 +16,7 @@ functions: finds all function declarations that may have modifiers
   captures the function name
 '''
 REGEX = dict({
-  'contracts': '(?m)^^[ \t]*(abstract )?contract\s*([_A-z0-9]+)\s*(is [_A-z0-9, ]*)?\s*{',
+  'contracts': '(?m)^^[ \t]*(abstract )?contract\s+([_A-z0-9]+)\s*(is [_A-z0-9, ]*)?\s*{',
   'functions': '(?m)^[ \t]*function ([_A-z0-9]+)\([^\)]*\)\s*([^{;]+){',
   'modifiers': '(?m)^[ \t]*modifier ([_A-z0-9]+)\([_A-z0-9]*\) {'
 })
