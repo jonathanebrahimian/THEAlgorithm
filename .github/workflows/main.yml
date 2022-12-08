@@ -24,8 +24,5 @@ jobs:
           source: lambda_function.py
 
       - name: Cache Warm-Up
-        uses: fjogeleit/http-request-action@v1
-        with:
-          url: 'https://api.caveatemptor.info/algoupdate/'
-          method: 'GET'
-          customHeaders: '{"Content-Type": "application/json"}'
+        run: |
+          curl -X 'GET''https://api.caveatemptor.info/algoupdate/' -H 'accept: application/json'
