@@ -28,7 +28,7 @@ def lambda_handler(event, context):
   # TODO implement
   return {
     'statusCode': 200,
-    'body': parse(contract_name,source)
+    'body': parse(contract_name,source,address)
   }
 
 def get_contract_source(address):
@@ -61,7 +61,7 @@ def get_contract_source(address):
 
   return contract_name,source
 
-def parse(contract_name,source):
+def parse(contract_name,source,address):
   contracts = re.finditer(REGEX['contracts'], source)
   # Custom contract "Constructor" for consistency
   new_contract = lambda curr_contract: {
@@ -88,6 +88,7 @@ def parse(contract_name,source):
   data = {}
   data['contracts'] = []
   data['name'] = contract_name
+  data['address'] = address
 
   next_contract = None
   modifiers_list = []
