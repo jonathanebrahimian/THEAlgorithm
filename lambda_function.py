@@ -87,6 +87,7 @@ def parse(contract_name,source):
   
   data = {}
   data['contracts'] = []
+  data['name'] = contract_name
 
   next_contract = None
   modifiers_list = []
