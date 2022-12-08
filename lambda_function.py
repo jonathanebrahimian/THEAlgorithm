@@ -16,7 +16,7 @@ functions: finds all function declarations that may have modifiers
   captures the function name
 '''
 REGEX = dict({
-  'contracts': '(?m)^^[ \t]*(abstract )?contract\s+([_A-z0-9]+)\s*(is [_A-z0-9, ]*)?\s*{',
+  'contracts': '(?m)^[ \t]*(abstract )?contract\s+([_A-z0-9]+)\s*(is [_A-z0-9, ]*)?\s*{',
   'functions': '(?m)^[ \t]*function ([_A-z0-9]+)\([^\)]*\)\s*([^{;]+){',
   'modifiers': '(?m)^[ \t]*modifier ([_A-z0-9]+)\([_A-z0-9]*\) {'
 })
@@ -24,11 +24,11 @@ REGEX = dict({
 def lambda_handler(event, context):
   address = event['queryStringParameters']['token']
   print("This is the address",address)
-  contract_name,source_split,source = get_contract_source(address)
+  contract_name,source = get_contract_source(address)
   # TODO implement
   return {
     'statusCode': 200,
-    'body': parse2(contract_name,source_split,source)
+    'body': parse(contract_name,source)
   }
 
 def get_contract_source(address):
@@ -57,11 +57,11 @@ def get_contract_source(address):
   # with open(f"{token}.txt", "w") as text_file:
   #   text_file.write(source)
   source_split = source.split('\n')
-  print(len(source_split))
+  print(f'^ It has {len(source_split)} lines')
 
-  return contract_name,source_split,source
+  return contract_name,source
 
-def parse2(contract_name,source_split,source):
+def parse(contract_name,source):
   #find contract names
   
   # '''
@@ -129,10 +129,14 @@ def parse2(contract_name,source_split,source):
   next modifier.
   '''
 
+  # Used to make sure we don't add duplicate contracts
+  ran_out_of_contracts = None
+
   try:
     # Iterators throw a StopIteration exception when they are done
     while has_modifiers:
       # CASE 1
+      ran_out_of_contracts = True
       if next_contract.start() < curr_modifier.start():
         # Update current contract
         curr_contract = next_contract
@@ -143,6 +147,7 @@ def parse2(contract_name,source_split,source):
         # Get the next contract, or throw StopIteration if iterator is done
         next_contract = next(contracts)
         continue
+      ran_out_of_contracts = False
 
       # CASE 2
       # Save modifier information
@@ -164,7 +169,7 @@ def parse2(contract_name,source_split,source):
   contracts and save them out.
   '''
   try:
-    while True:
+    while not ran_out_of_contracts:
       # Update current contract
       curr_contract = next_contract
 
@@ -268,151 +273,3 @@ def extract_source_code(source, start):
       break
   
   return source[start:start+fn_length+1].split('\n')
-
-def parse(contract_name,source_split):
-  contract_def = 'contract ' + contract_name
-
-  # find extended contracts
-  extendables = []
-  for i, line in enumerate(source_split):
-    line_split = line.split(' ')
-    if len(line_split) >= 2 and line_split[0] == 'contract':
-      extendables.append(line_split[1].strip())
-    elif len(line_split) >= 3 and line_split[0] == 'abstract' and line_split[1] == 'contract':
-      extendables.append(line_split[2].strip())
-  # print(extendables)
-
-
-  modifiers = defaultdict(set)
-  # find modifiers
-  stack = 0
-  curr_contract = None
-  modifier_name = None
-  modifier_src = {}
-  # modifiers = []
-  lines = []
-  for line_n, line in enumerate(source_split):
-    stripped = line.strip()
-    # print(line_n,line)
-    for extendable in extendables + [contract_name]:
-      if 'contract ' + extendable in line:
-      
-        assert stack == 0
-        curr_contract = extendable
-
-    prev = ''
-    for i, char in enumerate(stripped):
-      if i == 0 and char == '*':
-          break
-      if char == '/' and prev == '/':
-          break
-      if char == '{':
-          stack += 1
-      if char == '}':
-          stack -= 1
-      prev = char
-
-    # stack += line.count('{')
-    # stack -= line.count('}')
-    if stack == 0:
-      curr_contract = None
-
-    if 'modifier' == stripped[:8]:
-      assert curr_contract != None
-      modifier_name = stripped[9:stripped.find('(')]
-      modifiers[curr_contract].add(modifier_name)
-    
-    if modifier_name is not None:
-      lines.append(line)
-    
-    if stack == 1 and modifier_name is not None:
-      modifier_src[modifier_name] = lines
-      modifier_name = None
-      lines = []
-
-  stack = -9999
-  lines = []
-  functions = defaultdict(set)
-  src = {}
-  visibilities = ['private', 'internal', 'external', 'public']
-  for line_n, line in enumerate(source_split):
-    stripped = line.strip()
-
-    if 'function' == stripped[:8]:
-      stack = 0
-      func_name = stripped[9:stripped.find('(')]
-      idx = -1
-      vis_found = ''
-      for visibility in visibilities:
-          if stripped.find(visibility) > idx:
-            vis_found = visibility
-            idx = stripped.find(visibility)
-
-      if idx == -1:
-          continue
-
-      mods = stripped[idx+len(vis_found):]
-      mods = mods[:mods.find('(')].split(' ')
-      for mod in mods:
-          if mod in ['', 'view', 'returns', 'pure', 'virtual']:
-            continue
-          functions[mod].add(func_name)
-
-    prev = ''
-    for i, char in enumerate(stripped):
-      if i == 0 and char == '*':
-          break
-      if char == '/' and prev == '/':
-          break
-      if char == '{':
-          stack += 1
-      if char == '}':
-          stack -= 1
-      prev = char
-
-    if stack >= 0:
-      lines.append(line)
-    if stack == 0:
-      stack = -9999
-      src[func_name] = lines
-      lines = []
-    
-      
-
-  for key in functions:
-    functions[key] = list(functions[key])
-    for i,func in enumerate(functions[key]):
-      functions[key][i] = {
-        'name':func,
-        'source_code':src[func]
-      }
-
-  data = {}
-  data['contracts'] = []
-  for key in modifiers:
-    modifiers_json = []
-    for mod in modifiers[key]:
-      modifiers_json.append({
-      'name':mod,
-      'functions':list(functions[mod])
-      })
-    main = contract_name == key
-    
-    data['contracts'].append(
-      {
-        'name':key,
-        'modifiers':modifiers_json,
-        'main':main
-      }
-    )
-  
-  dataframe_data = []
-  for key in modifier_src:
-    dataframe_data.append(
-      {
-      'code':"".join(modifier_src[key]),
-      'function_name':key
-    }
-    )
-  
-  return data
