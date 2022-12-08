@@ -25,4 +25,4 @@ jobs:
 
       - name: Cache Warm-Up
         run: |
-          curl -X 'GET''https://api.caveatemptor.info/algoupdate/' -H 'accept: application/json'
+          curl -X 'GET' 'https://api.caveatemptor.info/algoupdate/' -H 'accept: application/json'
