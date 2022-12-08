@@ -26,6 +26,6 @@ jobs:
       - name: Cache Warm-Up
         uses: fjogeleit/http-request-action@v1
         with:
-          url: 'https://api.caveatemptor.info/algoupdate'
+          url: 'https://api.caveatemptor.info/algoupdate/'
           method: 'GET'
           customHeaders: '{"Content-Type": "application/json"}'
