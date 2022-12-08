@@ -62,9 +62,6 @@ def get_contract_source(address):
   return contract_name,source
 
 def parse(contract_name,source):
-  #find contract names
-  
-  # '''
   contracts = re.finditer(REGEX['contracts'], source)
   # Custom contract "Constructor" for consistency
   new_contract = lambda curr_contract: {
@@ -72,8 +69,6 @@ def parse(contract_name,source):
     'main': contract_name == curr_contract.group(2),
     'modifiers': []
   }
-  # print([x for x in contracts])
-  # print([x.group(2) for x in contracts])
 
   modifiers = re.finditer(REGEX['modifiers'], source)
   # Custom modifier "Constructor" for consistency
@@ -82,8 +77,6 @@ def parse(contract_name,source):
     'name': curr_modifier.group(1),
     'source_code': source_code
   }
-  # print([x for x in modifiers])
-  # print([x.group(1) for x in modifiers])
 
   functions = re.finditer(REGEX['functions'], source)
   # Custom modifier "Constructor" for consistency
@@ -91,9 +84,6 @@ def parse(contract_name,source):
     'name': curr_function.group(1),
     'source_code': source_code
   }
-  # print([x for x in functions])
-  # print([(x.group(1), x.group(2)) for x in functions])
-  # '''
   
   data = {}
   data['contracts'] = []
@@ -189,7 +179,7 @@ def parse(contract_name,source):
   if there are any, into the last contract.
   '''
   try:
-    while has_modifiers:
+    while has_modifiers and ran_out_of_contracts:
       # Save modifier information
       source_code = extract_source_code(source, curr_modifier.start())
       data['contracts'][-1]['modifiers'].append(new_modifier(curr_modifier, source_code))
