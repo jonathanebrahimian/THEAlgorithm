@@ -18,7 +18,7 @@ functions: finds all function declarations that may have modifiers
 REGEX = dict({
   'contracts': '(?m)^[ \t]*(abstract )?contract\s+([_A-Za-z0-9]+)\s*(is [_A-Za-z0-9, ]*)?\s*{',
   'functions': '(?m)^[ \t]*function ([_A-Za-z0-9]+)\([^\)]*\)\s*([^{;]+)\s*{',
-  'modifiers': '(?m)^[ \t]*modifier\s+([_A-Za-z0-9]+)\s*\([_A-Za-z0-9, ]*\)\s*{'
+  'modifiers': '(?m)^[ \t]*modifier\s+([_A-Za-z0-9]+)[^{]*{'
 })
 
 def lambda_handler(event, context):
@@ -224,7 +224,7 @@ def parse(contract_name,source):
   except StopIteration:
     pass 
 
-  print(data)
+  # print(data)
   return data
 
 def extract_source_code(source, start):
