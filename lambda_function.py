@@ -38,7 +38,6 @@ def get_contract_source(address):
   # print(data)
   contract_name = data['result'][0]['ContractName']
   source = data['result'][0]['SourceCode']
-  # print(source)
   
   if source[:2] == "{{":
     source = source[1:-1]
